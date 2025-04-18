@@ -12,6 +12,25 @@ app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUni
 
 app.use("/customer/auth/*", function auth(req,res,next){
 //Write the authenication mechanism here
+const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        return res.status(403).json({ message: "Access denied. Token missing." });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(403).json({ message: "Access denied. Token missing." });
+    }
+
+    jwt.verify(token, "secretKey", (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: "Invalid token." });
+        }
+        // Attach user info to request if needed
+        req.user = user;
+        next();
+    });
 });
  
 const PORT =5000;
